@@ -52,7 +52,7 @@ go run main.go analyze amazon.com --new
 
 # using executable JSON output
 ./domain-security-cli.exe analyze github.com --json
-go run main.go analyze github.com --json > results.json
+./domain-security-cli.exe analyze github.com --json > results.json
 
 # Force new analysis with built executable
 ./domain-security-cli.exe analyze github.com --new
@@ -91,6 +91,7 @@ JSON format provides complete data for all analyzed endpoints.
 - `cmd/` - Command-line interface using Cobra
 - `internal/client/` - Communicates with SSL Labs API
 - `internal/service/` - Handles analysis logic and polling
+- `internal/model/` - Data models for SSL Labs responses
 - `pkg/formatter/` - Formats output as table or JSON
 
 ## Requirements
