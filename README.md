@@ -36,6 +36,19 @@ go run main.go analyze <domain>
 
 ## Usage
 
+````bash
+# Analyze a domain
+go run main.go analyze amazon.com
+
+# JSON output
+go run main.go analyze amazon.com --json
+go run main.go analyze amazon.com --json > results.json
+
+# Force new analysis, takes 1-2 minutes
+go run main.go analyze amazon.com --new
+
+## Usage
+
 ```bash
 # Run without building (using Go)
 go run main.go analyze github.com
@@ -55,17 +68,18 @@ go run main.go analyze github.com --new
 
 # Using the compiled binary with JSON output to file
 ./domain-security-cli analyze github.com --json > results.json
+````
+
 ```
 
 ## Output
 
 Table format shows the overall grade and details for each endpoint:
 
-
+```
 
 # SSL Labs Analysis Results
 
-```bash
 Domain: google.com
 Overall Grade: B
 Status: READY
@@ -80,16 +94,16 @@ Status: Ready
 ...
 
 ```
-
 JSON format provides complete data for all analyzed endpoints.
 
 ## Project structure
 
 - `cmd/` - Command-line interface using Cobra
 - `internal/client/` - Communicates with SSL Labs API
-- `internal/model/` - Data models for API responses
+- `internal/models/` - Data models for API responses
 - `internal/service/` - Handles analysis logic and polling
 - `pkg/formatter/` - Formats output as table or JSON
+```
 
 ## Requirements
 
@@ -99,4 +113,3 @@ JSON format provides complete data for all analyzed endpoints.
 ## License
 
 MIT
-```
