@@ -77,7 +77,6 @@ func (c *SSLabsClient) Poll(domain string, maxWait time.Duration) (*models.Host,
 			return nil, fmt.Errorf("timeout after %v (last status: %s)", maxWait, host.Status)
 		}
 
-		// Esperar antes del siguiente polling
 		time.Sleep(10 * time.Second)
 	}
 }

@@ -20,7 +20,7 @@ func NewCheckerService() *CheckerService {
 }
 
 func (s *CheckerService) CheckDomain(domain string, newAnalysis bool) (*models.CheckResult, error) {
-	fmt.Printf("Starting analysis for %s...\n", domain)
+	//fmt.Printf("Starting analysis for %s...\n", domain)
 
 	host, err := s.client.Analyze(domain, newAnalysis)
 
@@ -28,9 +28,9 @@ func (s *CheckerService) CheckDomain(domain string, newAnalysis bool) (*models.C
 		return nil, fmt.Errorf("failed to analyze domain %s: %w", domain, err)
 	}
 
-	if host.Status == "IN_PROGRESS" {
-		fmt.Println("making a new analysis...")
-		fmt.Println("state different to READY, making polling")
+	if host.Status != "READY" && host.Status != "ERROR" {
+		//fmt.Println("making a new analysis...")
+		//fmt.Println("state different to READY, making polling")
 
 		host, err = s.client.Poll(domain, 10*time.Minute)
 		if err != nil {
@@ -42,7 +42,7 @@ func (s *CheckerService) CheckDomain(domain string, newAnalysis bool) (*models.C
 		return nil, fmt.Errorf("analysis error: %s", host.StatusMessage)
 	}
 
-	fmt.Println("Analysis complete!")
+	//fmt.Println("Analysis complete")
 
 	bestGrade := "N/A"
 	for _, ep := range host.Endpoints {

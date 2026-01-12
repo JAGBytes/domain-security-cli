@@ -14,11 +14,18 @@ A command-line tool to analyze SSL/TLS security of domains using the SSL Labs AP
 
 Requires Go 1.21 or higher.
 
+Clone the repository:
+
 ```bash
 git clone https://github.com/JAGBytes/domain-security-cli.git
+```
+
+Build the executable:
+
+```bash
 cd domain-security-cli
-go build -o domain-security-cli
-./domain-security-cli analyze example.com
+go build -o domain-security-cli.exe
+./domain-security-cli analyze <domain>
 ```
 
 Or run directly:
