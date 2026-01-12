@@ -55,16 +55,17 @@ go run main.go analyze github.com --new
 
 # Using the compiled binary with JSON output to file
 ./domain-security-cli analyze github.com --json > results.json
-
+```
 
 ## Output
 
 Table format shows the overall grade and details for each endpoint:
 
-```
+
 
 # SSL Labs Analysis Results
 
+```bash
 Domain: google.com
 Overall Grade: B
 Status: READY
