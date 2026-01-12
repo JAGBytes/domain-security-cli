@@ -86,6 +86,7 @@ JSON format provides complete data for all analyzed endpoints.
 
 - `cmd/` - Command-line interface using Cobra
 - `internal/client/` - Communicates with SSL Labs API
+- `internal/model/` - Data models for API responses
 - `internal/service/` - Handles analysis logic and polling
 - `pkg/formatter/` - Formats output as table or JSON
 
