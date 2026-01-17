@@ -19,14 +19,28 @@ func NewCheckerService() *CheckerService {
 
 }
 
-func (s *CheckerService) CheckDomains(doms []string, newAnalysis bool) ([]*models.CheckResult, error) {
+func (s *CheckerService) CheckDomains(doms []string, newAnalysis bool) ([]*models.CheckResult, []error) {
 
+	sem := make(chan struct{}, 5)
 	respCh := make(chan *models.CheckResult, len(doms))
 	errCh := make(chan error, len(doms))
 	results := make([]*models.CheckResult, 0, len(doms))
+	errors := make([]error, 0)
 
 	for _, dom := range doms {
-		go s.CheckDomain(dom, newAnalysis, respCh, errCh)
+		go func(domain string) {
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			res, err := s.CheckDomain(domain, newAnalysis)
+			if err != nil {
+				errCh <- err
+			} else {
+				respCh <- res
+			}
+
+		}(dom)
+
 	}
 
 	for range doms {
@@ -34,21 +48,21 @@ func (s *CheckerService) CheckDomains(doms []string, newAnalysis bool) ([]*model
 		case result := <-respCh:
 			results = append(results, result)
 		case err := <-errCh:
-			return results, err
+			errors = append(errors, err)
 		}
 	}
 
-	return results, nil
+	return results, errors
 
 }
 
-func (s *CheckerService) CheckDomain(domain string, newAnalysis bool, respCh chan<- *models.CheckResult, errCh chan<- error) {
+func (s *CheckerService) CheckDomain(domain string, newAnalysis bool) (*models.CheckResult, error) {
 	//fmt.Printf("Starting analysis for %s...\n", domain)
 
 	host, err := s.client.Analyze(domain, newAnalysis)
 
 	if err != nil {
-		errCh <- fmt.Errorf("failed to analyze domain %s: %w", domain, err)
+		return nil, fmt.Errorf("failed to analyze domain %s: %w", domain, err)
 	}
 
 	if host.Status != "READY" && host.Status != "ERROR" {
@@ -57,12 +71,12 @@ func (s *CheckerService) CheckDomain(domain string, newAnalysis bool, respCh cha
 
 		host, err = s.client.Poll(domain, 10*time.Minute)
 		if err != nil {
-			errCh <- fmt.Errorf("polling failed: %w", err)
+			return nil, fmt.Errorf("polling failed: %w", err)
 		}
 	}
 
 	if host.Status == "ERROR" {
-		errCh <- fmt.Errorf("analysis error: %s", host.StatusMessage)
+		return nil, fmt.Errorf("analysis error: %s", host.StatusMessage)
 	}
 
 	//fmt.Println("Analysis complete")
@@ -74,10 +88,10 @@ func (s *CheckerService) CheckDomain(domain string, newAnalysis bool, respCh cha
 		}
 	}
 
-	respCh <- &models.CheckResult{
+	return &models.CheckResult{
 		Domain:    domain,
 		Grade:     bestGrade,
 		Endpoints: host.Endpoints,
 		Status:    host.Status,
-	}
+	}, nil
 }
