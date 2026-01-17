@@ -19,13 +19,36 @@ func NewCheckerService() *CheckerService {
 
 }
 
-func (s *CheckerService) CheckDomain(domain string, newAnalysis bool) (*models.CheckResult, error) {
+func (s *CheckerService) CheckDomains(doms []string, newAnalysis bool) ([]*models.CheckResult, error) {
+
+	respCh := make(chan *models.CheckResult, len(doms))
+	errCh := make(chan error, len(doms))
+	results := make([]*models.CheckResult, 0, len(doms))
+
+	for _, dom := range doms {
+		go s.CheckDomain(dom, newAnalysis, respCh, errCh)
+	}
+
+	for range doms {
+		select {
+		case result := <-respCh:
+			results = append(results, result)
+		case err := <-errCh:
+			return results, err
+		}
+	}
+
+	return results, nil
+
+}
+
+func (s *CheckerService) CheckDomain(domain string, newAnalysis bool, respCh chan<- *models.CheckResult, errCh chan<- error) {
 	//fmt.Printf("Starting analysis for %s...\n", domain)
 
 	host, err := s.client.Analyze(domain, newAnalysis)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to analyze domain %s: %w", domain, err)
+		errCh <- fmt.Errorf("failed to analyze domain %s: %w", domain, err)
 	}
 
 	if host.Status != "READY" && host.Status != "ERROR" {
@@ -34,12 +57,12 @@ func (s *CheckerService) CheckDomain(domain string, newAnalysis bool) (*models.C
 
 		host, err = s.client.Poll(domain, 10*time.Minute)
 		if err != nil {
-			return nil, fmt.Errorf("polling failed: %w", err)
+			errCh <- fmt.Errorf("polling failed: %w", err)
 		}
 	}
 
 	if host.Status == "ERROR" {
-		return nil, fmt.Errorf("analysis error: %s", host.StatusMessage)
+		errCh <- fmt.Errorf("analysis error: %s", host.StatusMessage)
 	}
 
 	//fmt.Println("Analysis complete")
@@ -51,10 +74,10 @@ func (s *CheckerService) CheckDomain(domain string, newAnalysis bool) (*models.C
 		}
 	}
 
-	return &models.CheckResult{
+	respCh <- &models.CheckResult{
 		Domain:    domain,
 		Grade:     bestGrade,
 		Endpoints: host.Endpoints,
 		Status:    host.Status,
-	}, nil
+	}
 }
