@@ -18,10 +18,11 @@ var analyzeCmd = &cobra.Command{
 	Short: "Analyze SSL/TLS security of a domain",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+
 		domain := args[0]
 
 		checker := service.NewCheckerService()
-		result, err := checker.CheckDomain(domain, newAnalysis)
+		result, err := checker.CacheDomain(domain, newAnalysis)
 		if err != nil {
 			return fmt.Errorf("analysis failed: %w", err)
 		}

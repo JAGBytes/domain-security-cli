@@ -10,12 +10,28 @@ import (
 
 type CheckerService struct {
 	client *client.SSLabsClient
+	cache  map[string]*models.CheckResult
 }
 
 func NewCheckerService() *CheckerService {
 	return &CheckerService{
 		client: client.NewSSLabsClient(),
+		cache:  make(map[string]*models.CheckResult),
 	}
+
+}
+
+func (s *CheckerService) CacheDomain(domain string, newAnalysis bool) (*models.CheckResult, error) {
+
+	if s.cache[domain] != nil {
+		fmt.Printf("chace interno del cli\n")
+		return s.cache[domain], nil
+	}
+
+	fmt.Printf("sin cache")
+	host, err := s.CheckDomain(domain, newAnalysis)
+	s.cache[domain] = host
+	return host, err
 
 }
 
