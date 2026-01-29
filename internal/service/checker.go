@@ -21,17 +21,42 @@ func NewCheckerService() *CheckerService {
 
 }
 
-func (s *CheckerService) CacheDomain(domain string, newAnalysis bool) (*models.CheckResult, error) {
 
-	if s.cache[domain] != nil {
-		fmt.Printf("chace interno del cli\n")
-		return s.cache[domain], nil
+func (s *CheckerService) CheckDomains(doms []string, newAnalysis bool) ([]*models.CheckResult, []error) {
+
+	sem := make(chan struct{}, 5)
+	respCh := make(chan *models.CheckResult, len(doms))
+	errCh := make(chan error, len(doms))
+	results := make([]*models.CheckResult, 0, len(doms))
+	errors := make([]error, 0)
+
+	for _, dom := range doms {
+		go func(domain string) {
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			res, err := s.CheckDomain(domain, newAnalysis)
+			if err != nil {
+				errCh <- err
+			} else {
+				respCh <- res
+			}
+
+		}(dom)
+
 	}
 
-	fmt.Printf("sin cache")
-	host, err := s.CheckDomain(domain, newAnalysis)
-	s.cache[domain] = host
-	return host, err
+	for range doms {
+		select {
+		case result := <-respCh:
+			results = append(results, result)
+		case err := <-errCh:
+			errors = append(errors, err)
+		}
+	}
+
+	return results, errors
+
 
 }
 

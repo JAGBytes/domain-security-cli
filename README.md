@@ -57,8 +57,6 @@ go run main.go analyze amazon.com --new
 # Force new analysis with built executable
 ./domain-security-cli.exe analyze github.com --new
 
-
-
 ```
 
 ## Output

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/JAGBytes/domain-security-cli/internal/service"
 	"github.com/JAGBytes/domain-security-cli/pkg/formatter"
@@ -16,25 +17,25 @@ var (
 var analyzeCmd = &cobra.Command{
 	Use:   "analyze [domain]",
 	Short: "Analyze SSL/TLS security of a domain",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		domain := args[0]
-
 		checker := service.NewCheckerService()
-		result, err := checker.CacheDomain(domain, newAnalysis)
-		if err != nil {
-			return fmt.Errorf("analysis failed: %w", err)
+		results, errors := checker.CheckDomains(args, newAnalysis)
+
+		for _, err := range errors {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+
 		}
 
 		if jsonOutput {
-			output, err := formatter.FormatAsJSON(result)
+			output, err := formatter.FormatAsJSON(results)
 			if err != nil {
 				return err
 			}
 			fmt.Println(output)
 		} else {
-			fmt.Println(formatter.FormatAsTable(result))
+			fmt.Println(formatter.FormatAsTables(results))
 		}
 
 		return nil

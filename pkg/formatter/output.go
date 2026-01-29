@@ -8,6 +8,16 @@ import (
 	"github.com/JAGBytes/domain-security-cli/internal/models"
 )
 
+func FormatAsTables(results []*models.CheckResult) string {
+	output := ""
+	for _, result := range results {
+		output += FormatAsTable(result)
+		output += strings.Repeat("|", 100)
+		output += "\n\n"
+	}
+	return output
+}
+
 func FormatAsTable(result *models.CheckResult) string {
 	output := "SSL Labs Analysis Results\n"
 	output += strings.Repeat("=", 50) + "\n\n"
@@ -44,7 +54,7 @@ func FormatAsTable(result *models.CheckResult) string {
 	return output
 }
 
-func FormatAsJSON(result *models.CheckResult) (string, error) {
+func FormatAsJSON(result []*models.CheckResult) (string, error) {
 	data, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
 		return "", err
