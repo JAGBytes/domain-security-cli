@@ -10,14 +10,17 @@ import (
 
 type CheckerService struct {
 	client *client.SSLabsClient
+	cache  map[string]*models.CheckResult
 }
 
 func NewCheckerService() *CheckerService {
 	return &CheckerService{
 		client: client.NewSSLabsClient(),
+		cache:  make(map[string]*models.CheckResult),
 	}
 
 }
+
 
 func (s *CheckerService) CheckDomains(doms []string, newAnalysis bool) ([]*models.CheckResult, []error) {
 
@@ -53,6 +56,7 @@ func (s *CheckerService) CheckDomains(doms []string, newAnalysis bool) ([]*model
 	}
 
 	return results, errors
+
 
 }
 

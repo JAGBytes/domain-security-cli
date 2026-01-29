@@ -25,6 +25,7 @@ var analyzeCmd = &cobra.Command{
 
 		for _, err := range errors {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+
 		}
 
 		if jsonOutput {
